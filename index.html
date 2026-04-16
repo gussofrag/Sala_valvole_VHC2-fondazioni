@@ -5,24 +5,11 @@
   <title>Mappa pali sala valvole VHC2</title>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
-    }
-
-    .wrapper {
-      display: flex;
-      justify-content: center;
-      padding: 20px;
-    }
-
     .map-container {
       position: relative;
-      background: #ddd;
-      border: 1px solid #999;
+      width: 100%;
       max-width: 100%;
-      overflow: visible;
+      height: auto;
     }
 
     .map-container img {
@@ -33,267 +20,398 @@
 
     .marker {
       position: absolute;
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      border: 2px solid #fff;
-      box-shadow: 0 0 4px rgba(0,0,0,0.5);
-      cursor: pointer;
       transform: translate(-50%, -50%);
+      cursor: pointer;
+      border: 2px solid #fff;
+      user-select: none;
     }
 
+    /* COLORI VHC2 */
+    .azzurro { background: #00aaff; }
+    .verde   { background: #00cc44; }
+    .rosso   { background: #ff3333; }
+    .neutro  { background: #cccccc; }
+
+    .selected {
+      width: 28px !important;
+      height: 28px !important;
+      border: 3px solid yellow !important;
+      z-index: 20;
+    }
+
+    /* Tooltip doppio */
     .tooltip {
       position: absolute;
-      padding: 4px 8px;
-      background: rgba(0,0,0,0.8);
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.85);
       color: #fff;
-      font-size: 12px;
-      border-radius: 3px;
-      pointer-events: none;
-      transform: translate(-50%, -120%);
+      font-size: 15px;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-weight: 500;
+      border-radius: 6px;
       white-space: nowrap;
+      transform: translate(-50%, -120%);
+      pointer-events: auto;
       display: none;
-      z-index: 10;
+      z-index: 30;
+    }
+
+    .tooltip a {
+      color: #66ccff;
+      text-decoration: none;
+      font-weight: 600;
+      display: block;
+      margin: 3px 0;
+    }
+
+    .tooltip a:hover {
+      text-decoration: underline;
+    }
+
+    /* 📡 Prova sonica */
+    .marker.prova-sonica::after {
+      content: "📡";
+      position: absolute;
+      top: 50%;
+      left: -26px;
+      transform: translateY(-50%);
+      font-size: 20px;
+      pointer-events: none;
+    }
+
+    /* Pulsante legenda */
+    .legend-button {
+      position: fixed;
+      top: 20px;
+      right: 180px;
+      background: rgba(0,0,0,0.55);
+      padding: 6px 14px;
+      border-radius: 4px;
+      border: 2px solid red;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: 15px;
+      color: #ffffff;
+      cursor: pointer;
+      z-index: 9999;
+      transition: 0.2s;
+      user-select: text;
+    }
+
+    .legend-button:hover {
+      background: rgba(0,0,0,0.9);
+    }
+
+    /* Pannello legenda */
+    .legend-panel {
+      position: fixed;
+      top: 75px;
+      right: 20px;
+      width: 220px;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: 14px;
+      border-radius: 10px;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      font-size: 14px;
+      line-height: 1.4;
+      z-index: 9998;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      display: none;
+    }
+
+    .legend-panel .item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .legend-panel .item span.icon {
+      font-size: 18px;
+      margin-right: 8px;
     }
   </style>
 </head>
 
 <body>
-  <!-- 🔵 PULSANTE CASETTA (TORNA ALLA KEY PLANT) -->
-<a href="https://gussofrag.github.io/Key-Plant/"
-   style="
-     position: fixed;
-     top: 20px;
-     right: 20px;
-     background: rgba(0,0,0,0.75);
-     padding: 10px;
-     border-radius: 50%;
-     box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-     z-index: 9999;
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     width: 48px;
-     height: 48px;
-     transition: 0.2s;
-     cursor: pointer;
-   "
-   onmouseover="this.style.background='rgba(0,0,0,0.9)'"
-   onmouseout="this.style.background='rgba(0,0,0,0.75)'"
-   title="Torna alla Key Plant">
 
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
-    <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10.5z"/>
-  </svg>
+<!-- 🔵 ICONA LEGENDA -->
+<div class="legend-button" onclick="toggleLegend()" title="Apri legenda">
+  Legenda prove sui pali
+</div>
 
-</a>
-<!-- 🔵 FINE PULSANTE CASETTA -->
-<!-- 🔵 PULSANTE CASETTA (TORNA ALLA KEY PLANT) -->
-<a href="https://gussofrag.github.io/Key-Plant/"
-   style="
-     position: fixed;
-     top: 20px;
-     right: 20px;
-     background: rgba(0,0,0,0.75);
-     padding: 10px;
-     border-radius: 50%;
-     box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-     z-index: 9999;
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     width: 48px;
-     height: 48px;
-     transition: 0.2s;
-     cursor: pointer;
-   "
-   onmouseover="this.style.background='rgba(0,0,0,0.9)'"
-   onmouseout="this.style.background='rgba(0,0,0,0.75)'"
-   title="Torna alla Key Plant">
-
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
-    <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10.5z"/>
-  </svg>
-
-</a>
-<!-- 🔵 FINE PULSANTE CASETTA -->
-
-  <div class="wrapper">
-    <div class="map-container" id="map">
-      <img src="img/mappa_pali_sala_valvole_VHC2.jpg" alt="Mappa pali sala valvole VHC2" id="mapImage" />
-      <div id="tooltip" class="tooltip"></div>
-    </div>
+<!-- 🔵 PANNELLO LEGENDA -->
+<div id="legendPanel" class="legend-panel">
+  <div class="item">
+    <span class="icon">📡</span>
+    <span>Prova sonica “cross-hole”<br>
+      <small>Pali: 210, 225, 235, 245, 265, 280</small>
+    </span>
   </div>
+</div>
 
-  <script>
-    // === MARKERS VHC2 ===
-    const markers = [
-      { id: "Palo 205", x: 507, y: 384, pdf: "pdf/P_205.pdf" },
-      { id: "Palo 206", x: 657, y: 384, pdf: "pdf/P_206.pdf" },
-      { id: "Palo 207", x: 582, y: 459, pdf: "pdf/P_207.pdf" },
-      { id: "Palo 208", x: 507, y: 534, pdf: "pdf/P_208.pdf" },
-      { id: "Palo 209", x: 658, y: 535, pdf: "pdf/P_209.pdf" },
+<!-- 🔵 PULSANTE CASETTA -->
+<a href="https://gussofrag.github.io/Key-Plant/"
+   style="
+     position: fixed;
+     top: 20px;
+     right: 20px;
+     background: rgba(0,0,0,0.75);
+     padding: 10px;
+     border-radius: 50%;
+     box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+     z-index: 9999;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     width: 48px;
+     height: 48px;
+     transition: 0.2s;
+     cursor: pointer;
+   "
+   onmouseover="this.style.background='rgba(0,0,0,0.9)'"
+   onmouseout="this.style.background='rgba(0,0,0,0.75)'"
+   title="Torna alla Key Plant">
 
-      { id: "Palo 210", x: 818, y: 384, pdf: "pdf/P_210.pdf" },
-      { id: "Palo 211", x: 969, y: 384, pdf: "pdf/P_211.pdf" },
-      { id: "Palo 212", x: 893, y: 460, pdf: "pdf/P_212.pdf" },
-      { id: "Palo 213", x: 818, y: 535, pdf: "pdf/P_213.pdf" },
-      { id: "Palo 214", x: 969, y: 536, pdf: "pdf/P_214.pdf" },
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
+    <path d="M3 10.5L12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V10.5z"/>
+  </svg>
 
-      { id: "Palo 215", x: 1289, y: 384, pdf: "pdf/P_215.pdf" },
-      { id: "Palo 216", x: 1439, y: 384, pdf: "pdf/P_216.pdf" },
-      { id: "Palo 217", x: 1363, y: 460, pdf: "pdf/P_217.pdf" },
-      { id: "Palo 218", x: 1288, y: 535, pdf: "pdf/P_218.pdf" },
-      { id: "Palo 219", x: 1440, y: 535, pdf: "pdf/P_219.pdf" },
+</a>
 
-      { id: "Palo 220", x: 1759, y: 384, pdf: "pdf/P_220.pdf" },
-      { id: "Palo 221", x: 1910, y: 384, pdf: "pdf/P_221.pdf" },
-      { id: "Palo 222", x: 1835, y: 460, pdf: "pdf/P_222.pdf" },
-      { id: "Palo 223", x: 1760, y: 535, pdf: "pdf/P_223.pdf" },
-      { id: "Palo 224", x: 1910, y: 535, pdf: "pdf/P_224.pdf" },
+<div class="map-container" id="map">
+  <img src="img/mappa_pali_sala_valvole_VHC2.jpg">
+  <div id="tooltip" class="tooltip"></div>
+</div>
 
-      { id: "Palo 225", x: 2229, y: 384, pdf: "pdf/P_225.pdf" },
-      { id: "Palo 226", x: 2380, y: 384, pdf: "pdf/P_226.pdf" },
-      { id: "Palo 227", x: 2305, y: 460, pdf: "pdf/P_227.pdf" },
-      { id: "Palo 228", x: 2230, y: 536, pdf: "pdf/P_228.pdf" },
-      { id: "Palo 229", x: 2380, y: 535, pdf: "pdf/P_229.pdf" },
+<script>
+function toggleLegend() {
+  const panel = document.getElementById("legendPanel");
+  panel.style.display = (panel.style.display === "block") ? "none" : "block";
+}
 
-      { id: "Palo 230", x: 2700, y: 383, pdf: "pdf/P_230.pdf" },
-      { id: "Palo 231", x: 2850, y: 384, pdf: "pdf/P_231.pdf" },
-      { id: "Palo 232", x: 2775, y: 459, pdf: "pdf/P_232.pdf" },
-      { id: "Palo 233", x: 2700, y: 534, pdf: "pdf/P_233.pdf" },
-      { id: "Palo 234", x: 2851, y: 535, pdf: "pdf/P_234.pdf" },
+const markers = [
+  /* --- AZZURRI 205–224 --- */
+  { n: 205, x: 507, y: 384 },
+  { n: 206, x: 657, y: 384 },
+  { n: 207, x: 582, y: 459 },
+  { n: 208, x: 507, y: 534 },
+  { n: 209, x: 658, y: 535 },
 
-      { id: "Palo 235", x: 3162, y: 384, pdf: "pdf/P_235.pdf" },
-      { id: "Palo 236", x: 3312, y: 384, pdf: "pdf/P_236.pdf" },
-      { id: "Palo 237", x: 3237, y: 460, pdf: "pdf/P_237.pdf" },
-      { id: "Palo 238", x: 3162, y: 535, pdf: "pdf/P_238.pdf" },
-      { id: "Palo 239", x: 3312, y: 535, pdf: "pdf/P_239.pdf" },
+  /* 📡 Prova sonica */
+  { n: 210, x: 818, y: 384, prova: "sonica" },
 
-      { id: "Palo 240", x: 3184, y: 853, pdf: "pdf/P_240.pdf" },
-      { id: "Palo 241", x: 3299, y: 853, pdf: "pdf/P_241.pdf" },
-      { id: "Palo 242", x: 3242, y: 910, pdf: "pdf/P_242.pdf" },
-      { id: "Palo 243", x: 3184, y: 968, pdf: "pdf/P_243.pdf" },
-      { id: "Palo 244", x: 3300, y: 968, pdf: "pdf/P_244.pdf" },
+  { n: 211, x: 969, y: 384 },
+  { n: 212, x: 893, y: 460 },
+  { n: 213, x: 818, y: 535 },
+  { n: 214, x: 969, y: 536 },
+  { n: 215, x: 1289, y: 384 },
+  { n: 216, x: 1439, y: 384 },
+  { n: 217, x: 1363, y: 460 },
+  { n: 218, x: 1288, y: 535 },
+  { n: 219, x: 1440, y: 535 },
 
-      { id: "Palo 245", x: 3184, y: 1304, pdf: "pdf/P_245.pdf" },
-      { id: "Palo 246", x: 3298, y: 1304, pdf: "pdf/P_246.pdf" },
-      { id: "Palo 247", x: 3241, y: 1361, pdf: "pdf/P_247.pdf" },
-      { id: "Palo 248", x: 3184, y: 1419, pdf: "pdf/P_248.pdf" },
-      { id: "Palo 249", x: 3299, y: 1419, pdf: "pdf/P_249.pdf" },
+  /* 📡 Prova sonica */
+  { n: 225, x: 2229, y: 384, prova: "sonica" },
 
-      { id: "Palo 250", x: 3183, y: 1754, pdf: "pdf/P_250.pdf" },
-      { id: "Palo 251", x: 3299, y: 1754, pdf: "pdf/P_251.pdf" },
-      { id: "Palo 252", x: 3242, y: 1812, pdf: "pdf/P_252.pdf" },
-      { id: "Palo 253", x: 3183, y: 1869, pdf: "pdf/P_253.pdf" },
-      { id: "Palo 254", x: 3300, y: 1870, pdf: "pdf/P_254.pdf" },
+  /* --- VERDI 225–244 --- */
+  { n: 226, x: 2380, y: 384 },
+  { n: 227, x: 2305, y: 460 },
+  { n: 228, x: 2230, y: 536 },
+  { n: 229, x: 2380, y: 535 },
 
-      { id: "Palo 255", x: 3162, y: 2188, pdf: "pdf/P_255.pdf" },
-      { id: "Palo 256", x: 3312, y: 2188, pdf: "pdf/P_256.pdf" },
-      { id: "Palo 257", x: 3237, y: 2263, pdf: "pdf/P_257.pdf" },
-      { id: "Palo 258", x: 3162, y: 2338, pdf: "pdf/P_258.pdf" },
-      { id: "Palo 259", x: 3312, y: 2338, pdf: "pdf/P_259.pdf" },
+  /* 📡 Prova sonica */
+  { n: 235, x: 3162, y: 384, prova: "sonica" },
 
-      { id: "Palo 260", x: 2700, y: 2188, pdf: "pdf/P_260.pdf" },
-      { id: "Palo 261", x: 2851, y: 2188, pdf: "pdf/P_261.pdf" },
-      { id: "Palo 262", x: 2775, y: 2263, pdf: "pdf/P_262.pdf" },
-      { id: "Palo 263", x: 2700, y: 2339, pdf: "pdf/P_263.pdf" },
-      { id: "Palo 264", x: 2852, y: 2338, pdf: "pdf/P_264.pdf" },
+  /* --- ROSSI 245–293 --- */
+  { n: 245, x: 3184, y: 1304, prova: "sonica" },
 
-      { id: "Palo 265", x: 2230, y: 2187, pdf: "pdf/P_265.pdf" },
-      { id: "Palo 266", x: 2380, y: 2188, pdf: "pdf/P_266.pdf" },
-      { id: "Palo 267", x: 2305, y: 2262, pdf: "pdf/P_267.pdf" },
-      { id: "Palo 268", x: 2229, y: 2338, pdf: "pdf/P_268.pdf" },
-      { id: "Palo 269", x: 2380, y: 2338, pdf: "pdf/P_269.pdf" },
+  /* 📡 Prova sonica */
+  { n: 265, x: 2230, y: 2187, prova: "sonica" },
 
-      { id: "Palo 270", x: 1760, y: 2187, pdf: "pdf/P_270.pdf" },
-      { id: "Palo 271", x: 1910, y: 2187, pdf: "pdf/P_271.pdf" },
-      { id: "Palo 272", x: 1835, y: 2263, pdf: "pdf/P_272.pdf" },
-      { id: "Palo 273", x: 1758, y: 2338, pdf: "pdf/P_273.pdf" },
-      { id: "Palo 274", x: 1909, y: 2338, pdf: "pdf/P_274.pdf" },
+  /* 📡 Prova sonica */
+  { n: 280, x: 818, y: 2187, prova: "sonica" },
 
-      { id: "Palo 275", x: 1288, y: 2188, pdf: "pdf/P_275.pdf" },
-      { id: "Palo 276", x: 1439, y: 2187, pdf: "pdf/P_276.pdf" },
-      { id: "Palo 277", x: 1363, y: 2263, pdf: "pdf/P_277.pdf" },
-      { id: "Palo 278", x: 1288, y: 2338, pdf: "pdf/P_278.pdf" },
-      { id: "Palo 279", x: 1438, y: 2338, pdf: "pdf/P_279.pdf" },
+  /* --- TUTTI GLI ALTRI (neutri) --- */
+  { n: 220, x: 1759, y: 384 },
+  { n: 221, x: 1910, y: 384 },
+  { n: 222, x: 1835, y: 460 },
+  { n: 223, x: 1760, y: 535 },
+  { n: 224, x: 1910, y: 535 },
 
-      { id: "Palo 280", x: 818, y: 2187, pdf: "pdf/P_280.pdf" },
-      { id: "Palo 281", x: 968, y: 2187, pdf: "pdf/P_281.pdf" },
-      { id: "Palo 282", x: 893, y: 2263, pdf: "pdf/P_282.pdf" },
-      { id: "Palo 283", x: 818, y: 2338, pdf: "pdf/P_283.pdf" },
-      { id: "Palo 284", x: 968, y: 2338, pdf: "pdf/P_284.pdf" },
+  { n: 230, x: 2700, y: 383 },
+  { n: 231, x: 2850, y: 384 },
+  { n: 232, x: 2775, y: 459 },
+  { n: 233, x: 2700, y: 534 },
+  { n: 234, x: 2851, y: 535 },
 
-      { id: "Palo 285", x: 506, y: 2187, pdf: "pdf/P_285.pdf" },
-      { id: "Palo 286", x: 658, y: 2187, pdf: "pdf/P_286.pdf" },
-      { id: "Palo 287", x: 581, y: 2263, pdf: "pdf/P_287.pdf" },
-      { id: "Palo 288", x: 506, y: 2338, pdf: "pdf/P_288.pdf" },
-      { id: "Palo 289", x: 657, y: 2339, pdf: "pdf/P_289.pdf" },
+  { n: 236, x: 3312, y: 384 },
+  { n: 237, x: 3237, y: 460 },
+  { n: 238, x: 3162, y: 535 },
+  { n: 239, x: 3312, y: 535 },
 
-      { id: "Palo 290", x: 206, y: 2188, pdf: "pdf/P_290.pdf" },
-      { id: "Palo 291", x: 357, y: 2187, pdf: "pdf/P_291.pdf" },
-      { id: "Palo 292", x: 282, y: 2263, pdf: "pdf/P_292.pdf" },
-      { id: "Palo 293", x: 207, y: 2337, pdf: "pdf/P_293.pdf" },
-      { id: "Palo 294", x: 357, y: 2339, pdf: "pdf/P_294.pdf" }
-    ];
+  { n: 240, x: 3184, y: 853 },
+  { n: 241, x: 3299, y: 853 },
+  { n: 242, x: 3242, y: 910 },
+  { n: 243, x: 3184, y: 968 },
+  { n: 244, x: 3300, y: 968 },
 
-    const map = document.getElementById("map");
-    const img = document.getElementById("mapImage");
-    const tooltip = document.getElementById("tooltip");
+  { n: 246, x: 3298, y: 1304 },
+  { n: 247, x: 3241, y: 1361 },
+  { n: 248, x: 3184, y: 1419 },
+  { n: 249, x: 3299, y: 1419 },
 
-    img.addEventListener("load", () => {
-      const imgWidth = img.naturalWidth;
-      const imgHeight = img.naturalHeight;
+  { n: 250, x: 3183, y: 1754 },
+  { n: 251, x: 3299, y: 1754 },
+  { n: 252, x: 3242, y: 1812 },
+  { n: 253, x: 3183, y: 1869 },
+  { n: 254, x: 3300, y: 1870 },
 
-      markers.forEach(m => {
-        const el = document.createElement("div");
-        el.className = "marker";
+  { n: 255, x: 3162, y: 2188 },
+  { n: 256, x: 3312, y: 2188 },
+  { n: 257, x: 3237, y: 2263 },
+  { n: 258, x: 3162, y: 2338 },
+  { n: 259, x: 3312, y: 2338 },
 
-        // Conversione in percentuale
-        const leftPercent = (m.x / imgWidth) * 100;
-        const topPercent = (m.y / imgHeight) * 100;
+  { n: 260, x: 2700, y: 2188 },
+  { n: 261, x: 2851, y: 2188 },
+  { n: 262, x: 2775, y: 2263 },
+  { n: 263, x: 2700, y: 2339 },
+  { n: 264, x: 2852, y: 2338 },
 
-        el.style.left = leftPercent + "%";
-        el.style.top = topPercent + "%";
+  { n: 266, x: 2380, y: 2188 },
+  { n: 267, x: 2305, y: 2262 },
+  { n: 268, x: 2229, y: 2338 },
+  { n: 269, x: 2380, y: 2338 },
 
-        // === COLORI DEFINITI DA GIUSEPPE ===
-        const numero = parseInt(m.id.replace("Palo", "").trim());
+  { n: 270, x: 1760, y: 2187 },
+  { n: 271, x: 1910, y: 2187 },
+  { n: 272, x: 1835, y: 2263 },
+  { n: 273, x: 1758, y: 2338 },
+  { n: 274, x: 1909, y: 2338 },
 
-        if (numero >= 205 && numero <= 224) {
-          el.style.background = "#00aaff";   // Azzurro
-        }
-        else if (numero >= 225 && numero <= 244) {
-          el.style.background = "#00cc44";   // Verde
-        }
-        else if (numero >= 245 && numero <= 293) {
-          el.style.background = "#ff3333";   // Rosso
-        }
-        else {
-          el.style.background = "#cccccc";   // Neutro
-        }
+  { n: 275, x: 1288, y: 2188 },
+  { n: 276, x: 1439, y: 2187 },
+  { n: 277, x: 1363, y: 2263 },
+  { n: 278, x: 1288, y: 2338 },
+  { n: 279, x: 1438, y: 2338 },
 
-        // Tooltip
-        el.addEventListener("mouseenter", () => {
-          tooltip.textContent = m.id;
-          tooltip.style.left = leftPercent + "%";
-          tooltip.style.top = topPercent + "%";
-          tooltip.style.display = "block";
-        });
+  { n: 281, x: 968, y: 2187 },
+  { n: 282, x: 893, y: 2263 },
+  { n: 283, x: 818, y: 2338 },
+  { n: 284, x: 968, y: 2338 },
 
-        el.addEventListener("mouseleave", () => {
-          tooltip.style.display = "none";
-        });
+  { n: 285, x: 506, y: 2187 },
+  { n: 286, x: 658, y: 2187 },
+  { n: 287, x: 581, y: 2263 },
+  { n: 288, x: 506, y: 2338 },
+  { n: 289, x: 657, y: 2339 },
 
-        // Apertura PDF
-        el.addEventListener("click", () => {
-          if (m.pdf) window.open(m.pdf, "_blank");
-        });
+  { n: 290, x: 206, y: 2188 },
+  { n: 291, x: 357, y: 2187 },
+  { n: 292, x: 282, y: 2263 },
+  { n: 293, x: 207, y: 2337 },
+  { n: 294, x: 357, y: 2339 }
+];
+/* === PARTE 2 — SCRIPT COMPLETO === */
 
-        map.appendChild(el);
-      });
-    });
-  </script>
+const map = document.getElementById("map");
+const tooltip = document.getElementById("tooltip");
+
+let selectedMarker = null;
+
+// Tooltip persistente
+tooltip.addEventListener("mouseenter", () => {
+  tooltip.style.display = "block";
+});
+
+tooltip.addEventListener("mouseleave", () => {
+  tooltip.style.display = "none";
+});
+
+markers.forEach(m => {
+  const el = document.createElement("div");
+
+  /* -------------------------
+     LOGICA COLORI VHC2
+     ------------------------- */
+  let colorClass = "";
+
+  if (m.n >= 205 && m.n <= 224) {
+    colorClass = "azzurro";
+  } else if (m.n >= 225 && m.n <= 244) {
+    colorClass = "verde";
+  } else if (m.n >= 245 && m.n <= 293) {
+    colorClass = "rosso";
+  } else {
+    colorClass = "neutro";
+  }
+
+  el.className = "marker " + colorClass;
+
+  /* -------------------------
+     ICONE PROVE SONICHE
+     ------------------------- */
+  if (m.prova === "sonica") {
+    el.classList.add("prova-sonica");
+  }
+
+  /* -------------------------
+     POSIZIONAMENTO IN %
+     ------------------------- */
+  const img = document.querySelector(".map-container img");
+
+  img.addEventListener("load", () => {
+    const leftPercent = (m.x / img.naturalWidth) * 100;
+    const topPercent  = (m.y / img.naturalHeight) * 100;
+
+    el.style.left = leftPercent + "%";
+    el.style.top  = topPercent + "%";
+  });
+
+  /* -------------------------
+     TOOLTIP DOPPIO
+     ------------------------- */
+  el.addEventListener("mouseenter", () => {
+    tooltip.innerHTML = `
+      <div><strong>Palo ${m.n}</strong></div>
+      <a href="pdf/P_${m.n}.pdf" target="_blank">📄 Elaborato Progettuale</a>
+      <a href="qlt/P_${m.n}_QLT.pdf" target="_blank">🟠 Documento Qualità (QLT)</a>
+    `;
+
+    const imgW = img.naturalWidth;
+    const imgH = img.naturalHeight;
+
+    tooltip.style.left = (m.x / imgW * 100) + "%";
+    tooltip.style.top  = (m.y / imgH * 100) + "%";
+    tooltip.style.display = "block";
+  });
+
+  el.addEventListener("mouseleave", () => {
+    setTimeout(() => {
+      if (!tooltip.matches(':hover')) {
+        tooltip.style.display = "none";
+      }
+    }, 120);
+  });
+
+  /* -------------------------
+     CLICK = SELEZIONE + PDF
+     ------------------------- */
+  el.addEventListener("click", () => {
+    if (selectedMarker) selectedMarker.classList.remove("selected");
+    el.classList.add("selected");
+    selectedMarker = el;
+
+    window.open(`pdf/P_${m.n}.pdf`, "_blank");
+  });
+
+  map.appendChild(el);
+});
+</script>
 
 </body>
-
 </html>
