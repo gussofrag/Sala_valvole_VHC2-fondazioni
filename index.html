@@ -42,7 +42,7 @@
       z-index: 20;
     }
 
-    /* Tooltip doppio */
+    /* Tooltip */
     .tooltip {
       position: absolute;
       padding: 10px 14px;
@@ -82,7 +82,7 @@
       pointer-events: none;
     }
 
-    /* Pulsante legenda */
+    /* 🔥 PULSANTI */
     .legend-button {
       position: fixed;
       top: 20px;
@@ -104,11 +104,12 @@
       background: rgba(0,0,0,0.9);
     }
 
-    /* Pannello legenda */
+    /* 🔥 LEGENDA ANCORATA AL PULSANTE */
     .legend-panel {
-      position: fixed;
-      top: 75px;
-      right: 20px;
+      position: absolute;
+      top: 0;
+      right: 100%;
+      margin-right: 10px;
       width: 220px;
       background: rgba(0,0,0,0.85);
       color: #fff;
@@ -138,36 +139,26 @@
 
 <body>
 
-<!-- 🔵 ICONA LEGENDA (cliccabile) -->
+<!-- 🔥 PULSANTE + LEGENDA -->
 <div class="legend-button" onclick="toggleLegend()" title="Apri legenda">
   Legenda prove sui pali
+
+  <div id="legendPanel" class="legend-panel">
+    <div class="item">
+      <span class="icon">📡</span>
+      <span>Prova sonica “cross-hole”<br>
+        <small>Pali: 210, 225, 235, 245, 265, 280</small>
+      </span>
+    </div>
+  </div>
 </div>
 
-<!-- 🔵 PANNELLO LEGENDA (inizialmente nascosto) -->
-<div id="legendPanel" class="legend-panel" style="display:none;">
-
-  <!-- 🔵 TITOLO LEGENDA -->
-  <div style="
-    font-weight:700;
-    font-size:16px;
-    margin-bottom:12px;
-    text-align:left;
-  ">
-    Legenda prove sui pali
-  </div>
-
-  <!-- 🔵 BLOCCO PROVE (come nell’immagine) -->
-  <div class="item" style="margin-left:0; padding-left:0;">
-    <span class="icon" style="margin-left:0;">📡</span>
-    <span style="text-align:left;">
-      Prova sonica “cross-hole”<br>
-      <small>Pali: 210, 225, 235, 245, 265, 280</small>
-    </span>
-  </div>
-
+<!-- 🔨 PULSANTE SCAPITOZZATI -->
+<div class="legend-button" onclick="toggleScapitozzati()" style="top: 60px; right: 180px;">
+  ⛏️ Pali scapitozzati
 </div>
 
-<!-- 🔵 PULSANTE CASETTA -->
+<!-- 🔙 HOME -->
 <a href="https://gussofrag.github.io/Key-Plant/"
    style="
      position: fixed;
@@ -186,8 +177,6 @@
      transition: 0.2s;
      cursor: pointer;
    "
-   onmouseover="this.style.background='rgba(0,0,0,0.9)'"
-   onmouseout="this.style.background='rgba(0,0,0,0.75)'"
    title="Torna alla Key Plant">
 
   <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
@@ -207,6 +196,27 @@ function toggleLegend() {
   panel.style.display = (panel.style.display === "block") ? "none" : "block";
 }
 
+let filterScapitozzati = false;
+
+function toggleScapitozzati() {
+  filterScapitozzati = !filterScapitozzati;
+
+  document.querySelectorAll('.marker').forEach(marker => {
+    const isScapitozzato = marker.dataset.scapitozzato === "true";
+
+    if (filterScapitozzati) {
+      if (isScapitozzato) {
+        marker.style.display = "block";
+        marker.classList.add("scapitozzato-attivo");
+      } else {
+        marker.style.display = "none";
+      }
+    } else {
+      marker.style.display = "block";
+      marker.classList.remove("scapitozzato-attivo");
+    }
+  });
+}
 const markers = [
   /* --- AZZURRI 205–224 --- */
   { n: 205, x: 507, y: 384 },
